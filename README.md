@@ -1,8 +1,8 @@
-# Go-Green-CS160
+### Go-Green-CS160 <img src="https://slackmojis.com/emojis/26042-recycle/image/1680406223/recycle.gif" width="22"/>
 “Code repository for Go Green (Recycle Helper) CS160 Summer 2025 project”
 
 <div align="left">
-<img src="https://slackmojis.com/emojis/26042-recycle/image/1680406223/recycle.gif" width="22"/>
+
 ```
   ∧,,,∧
  (• ⩊ •)
