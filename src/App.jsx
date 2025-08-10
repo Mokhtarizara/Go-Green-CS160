@@ -4,7 +4,7 @@
 //import './App.css'
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 // src/App.jsx
-import React, { useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 
 //
 function Home() {
@@ -75,18 +75,86 @@ function PageShell({ title, children, backTo = "/" }) {
 }
 
 // -----------------------------------Camera page-----------------------------------
+
+
 function Camera() {
   const navigate = useNavigate();
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [capturedPhoto, setCapturedPhoto] = useState(null);
+
+  useEffect(() => {
+    async function getVideo() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (err) {
+        alert("Could not access camera: " + err.message);
+      }
+    }
+    getVideo();
+
+    return () => {
+      if (videoRef.current && videoRef.current.srcObject) {
+        videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
+  const handleCapture = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    const context = canvas.getContext("2d");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imageDataUrl = canvas.toDataURL("image/png");
+    setCapturedPhoto(imageDataUrl);
+  };
+
+  const handleRetake = () => {
+    setCapturedPhoto(null);
+  };
+
   return (
-    <PageShell title="CAMERA PAGE">
-      {/* placeholder for your modal trigger */}
-      <div role="go-button" data-bs-toggle="modal" data-bs-target="#profilePicModal"></div>
-      <div style={{ marginTop: "20rem" }}>
-        <button className="go-button" onClick={() => navigate("/items")}>Capture</button>
-      </div>
-    </PageShell>
+    <div className="container">
+      <button className="go-button" onClick={() => navigate("/")}>Back</button>
+      <h2>Camera Page</h2>
+
+      {!capturedPhoto ? (
+        <>
+          <video ref={videoRef} autoPlay playsInline style={{ width: "100%", maxWidth: 400 }} />
+          <button className="go-button" onClick={handleCapture} style={{ marginTop: "1rem" }}>
+            Capture
+          </button>
+        </>
+      ) : (
+        <>
+          <img src={capturedPhoto} alt="Captured" style={{ width: "100%", maxWidth: 400 }} />
+          <div style={{ marginTop: "1rem" }}>
+            <button className="go-button" onClick={handleRetake}>Retake</button>
+            <button
+              className="go-button"
+              onClick={() => navigate("/items")}
+              style={{ marginLeft: "1rem" }}
+            >
+              Continue
+            </button>
+          </div>
+        </>
+      )}
+
+      <canvas ref={canvasRef} style={{ display: "none" }} />
+    </div>
   );
 }
+
 
 // -----------------------------------Mic page-----------------------------------
 function Mic() {
