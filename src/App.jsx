@@ -157,16 +157,103 @@ function Camera() {
 
 
 // -----------------------------------Mic page-----------------------------------
+function MicModal({ isOpen, onClose }) {
+  const [recording, setRecording] = useState(false);
+  const [audioURL, setAudioURL] = useState(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+
+  useEffect(() => {
+    // Cleanup audio URL on modal close
+    if (!isOpen) {
+      setAudioURL(null);
+      setRecording(false);
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      }
+    }
+  }, [isOpen]);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      mediaRecorderRef.current.ondataavailable = (e) => {
+        audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorderRef.current.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" });
+        const url = URL.createObjectURL(audioBlob);
+        setAudioURL(url);
+      };
+
+      mediaRecorderRef.current.start();
+      setRecording(true);
+    } catch (err) {
+      alert("Error accessing microphone: " + err.message);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+      setRecording(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div style={{
+      position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: "rgba(0,0,0,0.5)", display: "flex",
+      alignItems: "center", justifyContent: "center", zIndex: 1000,
+    }}>
+      <div style={{
+        background: "white", padding: 20, borderRadius: 8,
+        maxWidth: 400, width: "90%", textAlign: "center",
+      }}>
+        <h3>Mic Recorder</h3>
+        {!recording ? (
+          <button className="go-button" onClick={startRecording}>Start Recording</button>
+        ) : (
+          <button className="go-button" onClick={stopRecording}>Stop Recording</button>
+        )}
+
+        {audioURL && (
+          <div style={{ marginTop: 20 }}>
+            <audio controls src={audioURL} />
+          </div>
+        )}
+
+        <div style={{ marginTop: 20 }}>
+          <button className="go-button" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Mic() {
   const navigate = useNavigate();
+  const [modalOpen, setModalOpen] = useState(false);
+
   return (
     <PageShell title="MIC PAGE">
+      <button className="go-button" onClick={() => setModalOpen(true)}>Tap to Speak</button>
+
+      <MicModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+
       <div style={{ marginTop: "20rem" }}>
-        <button className="go-button" onClick={() => navigate("/result")}>click me</button>
+        <button className="go-button" onClick={() => navigate("/result")}>Next</button>
       </div>
     </PageShell>
   );
 }
+
 
 // -----------------------------------Chat page-----------------------------------
 function Chat() {
