@@ -13,11 +13,21 @@ function Home() {
   const [zip, setZip] = useState("");
   const [saveZip, setSaveZip] = useState(false);
 
+  useEffect(() => {
+    const saved = localStorage.getItem("savedLocation");
+    if (saved) setZip(saved);
+  }, []);
+
   const handleEnter = () => {
-    if (saveZip && zip.trim()) {
-      localStorage.setItem("savedLocation", zip.trim());
+    if (zip.trim()) {
+      if (saveZip) {
+        localStorage.setItem("savedLocation", zip.trim());
+      }
+      setEntered(true);  // show next buttons
+      setError("");      // clear error
+    } else {
+      setError("Please enter a location before continuing.");
     }
-    setEntered(true); // unlock the buttons
   };
 
   return (
@@ -45,7 +55,14 @@ function Home() {
 
       <div style={{ maxWidth: "200px", margin: "2rem auto" }}>
         {!entered ? (
-          <button className="go-button" onClick={handleEnter}>Enter</button>
+          <button 
+            className="go-button" 
+            
+            onClick={handleEnter} 
+            disabled={!zip.trim()} 
+          >
+            Enter
+          </button>
         ) : (
           <small>I will delete this later but this is our first start that needs to be fix- the button will be disable until user put their loction </small>
         )}
@@ -61,7 +78,6 @@ function Home() {
     </div>
   );
 }
-
 // -----------------------------------PageShell component-----------------------------------
 function PageShell({ title, children, backTo = "/" }) {
   const navigate = useNavigate();
@@ -73,28 +89,27 @@ function PageShell({ title, children, backTo = "/" }) {
     </div>
   );
 }
-
 // -----------------------------------Camera page-----------------------------------
-
-
 function Camera() {
   const navigate = useNavigate();
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [capturedPhoto, setCapturedPhoto] = useState(null);
 
-  useEffect(() => {
-    async function getVideo() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (err) {
-        alert("Could not access camera: " + err.message);
+  // Function to start the camera stream
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
       }
+    } catch (err) {
+      alert("Could not access camera: " + err.message);
     }
-    getVideo();
+  };
+
+  useEffect(() => {
+    startCamera();
 
     return () => {
       if (videoRef.current && videoRef.current.srcObject) {
@@ -116,10 +131,16 @@ function Camera() {
 
     const imageDataUrl = canvas.toDataURL("image/png");
     setCapturedPhoto(imageDataUrl);
+
+    // Stop video stream after capture
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach((track) => track.stop());
+    }
   };
 
   const handleRetake = () => {
     setCapturedPhoto(null);
+    startCamera();  // Restart camera stream on retake
   };
 
   return (
@@ -154,9 +175,8 @@ function Camera() {
     </div>
   );
 }
-
-
 // -----------------------------------Mic page-----------------------------------
+
 function MicModal({ isOpen, onClose }) {
   const [recording, setRecording] = useState(false);
   const [audioURL, setAudioURL] = useState(null);
@@ -254,7 +274,6 @@ function Mic() {
   );
 }
 
-
 // -----------------------------------Chat page-----------------------------------
 function Chat() {
   const navigate = useNavigate();
@@ -276,7 +295,6 @@ function Chat() {
     </PageShell>
   );
 }
-
 // -----------------------------------Items page-----------------------------------
 function Items() {
   const navigate = useNavigate();
@@ -320,8 +338,6 @@ function Recenter() {
     </PageShell>
   );
 }
-
-
 // -----------------------------------Stubs for Recycling Pages-----------------------------------
 // we will use these pages for better navigation
 
@@ -348,7 +364,7 @@ export default function App() {
       <Route path="/clean-plastic" element={<CleanPlastic />} />
       <Route path="/landfill" element={<Landfill />} />
       <Route path="/electronic" element={<Electronic />} />
-// ---- Our 404 Page ----
+      {/* ---- Our 404 Page ---- */}
       <Route path="*" element={<div className="container">
         <h2>ERROR: Page not found</h2></div>} />
     </Routes>
