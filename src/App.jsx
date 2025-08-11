@@ -1,12 +1,19 @@
 //import { useState } from 'react'
 //import reactLogo from './assets/react.svg'
 //import viteLogo from '/vite.svg'
-//import './App.css'
+import './App.css'
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
-// src/App.jsx
 import React, { useState } from "react";
+import { IoCamera } from "react-icons/io5";
+import { IoIosReturnLeft } from "react-icons/io";
+import { FaMicrophone } from "react-icons/fa";
+import { IoChatbubblesOutline } from "react-icons/io5";
+import { MdNavigateBefore } from "react-icons/md";
+import { LuMic } from "react-icons/lu";
 
-//
+
+
+
 function Home() {
   const navigate = useNavigate();
   const [entered, setEntered] = useState(false);
@@ -45,18 +52,19 @@ function Home() {
 
       <div style={{ maxWidth: "200px", margin: "2rem auto" }}>
         {!entered ? (
-          <button className="go-button" onClick={handleEnter}>Enter</button>
+          <button className="go-button" onClick={handleEnter}><IoIosReturnLeft class name="enter-icon" size={30} />
+</button>
         ) : (
           <small>I will delete this later but this is our first start that needs to be fix- the button will be disable until user put their loction </small>
         )}
       </div>
 
       {entered && (
-        <div style={{ marginTop: "5rem" }}>
-          <button className="go-button" onClick={() => navigate("/camera")}>Camera</button>
-          <button className="go-button" onClick={() => navigate("/mic")}>Mic</button>
-          <button className="go-button" onClick={() => navigate("/chat")}>Chat</button>
-        </div>
+        <div style={{ marginTop: "2rem" }}>
+          <button className="go-button" onClick={() => navigate("/camera")}><IoCamera class name="camera-icon" size={30} /></button>
+          <button className="go-button" onClick={() => navigate("/mic")}><FaMicrophone class name="mic-icon" size={30} /></button>
+          <button className="go-button" onClick={() => navigate("/chat")}><IoChatbubblesOutline class name="chat-icon" size={30} /></button>
+        </div>  
       )}
     </div>
   );
@@ -67,7 +75,7 @@ function PageShell({ title, children, backTo = "/" }) {
   const navigate = useNavigate();
   return (
     <div className="container">
-      <button className="go-button" onClick={() => navigate(backTo)}>Back</button>
+      <button className="navBack-button" onClick={() => navigate(backTo)}><MdNavigateBefore class name="navBack-icon"  /></button>
       <h2>{title}</h2>
       {children}
     </div>
@@ -82,7 +90,7 @@ function Camera() {
       {/* placeholder for your modal trigger */}
       <div role="go-button" data-bs-toggle="modal" data-bs-target="#profilePicModal"></div>
       <div style={{ marginTop: "20rem" }}>
-        <button className="go-button" onClick={() => navigate("/items")}>Capture</button>
+        <button className="camera-button" onClick={() => navigate("/items")}><IoCamera class name="camera-icon" size={30} /></button>
       </div>
     </PageShell>
   );
@@ -91,10 +99,42 @@ function Camera() {
 // -----------------------------------Mic page-----------------------------------
 function Mic() {
   const navigate = useNavigate();
+    const [micOn, setMicOn] = useState(false);
+
+  // When user clicks the mic: it will set micOn to true and navigate to the MIC result page after gtetting the answer from AI => this part need to be implemented later
+    const handleMicClick = () => {
+    setMicOn(true);
+
+    setTimeout(() => navigate("/resultmic"), 5000); // the time is just fo delaying to navigate to another sub page  --> Insted of 5000 we should get answer from AI and the result will pop up in the actual MIC RESULT PAGE
+  } //else {
+      // Turning off the mic
+     //  setMicOn(false);
+      // Todo later:  cancel any recording/request here we add later 
+   // }
+ // };
+
   return (
     <PageShell title="MIC PAGE">
-      <div style={{ marginTop: "20rem" }}>
-        <button className="go-button" onClick={() => navigate("/result")}>click me</button>
+      <div className={`mic-visual ${micOn ? "active" : ""}`}> 
+        {!micOn && <p className="mic-hint">Tap the mic to start</p>}
+        {micOn && ( 
+          <div className="square" aria-hidden={!micOn}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        )}
+      </div>
+
+      <div style={{ marginTop: "1rem", textAlign: "center" }}>
+        <button
+          className="mic-button"
+          onClick={handleMicClick}
+          aria-pressed={micOn}
+          aria-label="Start microphone visual"
+        >
+          <LuMic className="mic-icon" />
+        </button>
       </div>
     </PageShell>
   );
@@ -116,7 +156,7 @@ function Chat() {
         />
       </div>
       <div style={{ marginTop: "20rem" }}>
-        <button className="go-button" onClick={() => navigate("/result")}>click me</button>
+        <button className="go-button" onClick={() => navigate("/resultmic")}>click me</button>
       </div>
     </PageShell>
   );
@@ -144,11 +184,28 @@ function Items() {
 function Result() {
   const navigate = useNavigate();
   return (
-    <PageShell title="RESULT PAGE">
+    <PageShell title="sRESULT PAGE">
       <h3>Berkeley</h3>
       <div style={{ marginTop: "20rem" }}>
         <button className="go-button" onClick={() => navigate("/recenter")}>
-          Recycling Center Near Me
+          Recycling Center
+        </button>
+      </div>
+    </PageShell>
+  );
+}
+
+
+// -----------------------------------MIC Result page-----------------------------------
+
+function Resultmic() {
+  const navigate = useNavigate();
+  return (
+    <PageShell title="MIC RESULT PAGE">
+      <h3>Berkeley</h3>
+      <div style={{ marginTop: "20rem" }}>
+        <button className="go-button" onClick={() => navigate("/recenter")}>
+          Recycling Center
         </button>
       </div>
     </PageShell>
@@ -187,6 +244,7 @@ export default function App() {
       <Route path="/chat" element={<Chat />} />
       <Route path="/items" element={<Items />} />
       <Route path="/result" element={<Result />} />
+      <Route path="/resultmic" element={<Resultmic />} />
       <Route path="/recenter" element={<Recenter />} />
       <Route path="/compost" element={<Compost />} />
       <Route path="/paper" element={<Paper />} />
