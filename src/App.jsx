@@ -1,21 +1,73 @@
-//import { useState } from 'react'
-//import reactLogo from './assets/react.svg'
-//import viteLogo from '/vite.svg'
-//import './App.css'
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
-// src/App.jsx
-import React, { useState } from "react";
-
-//
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 function Home() {
   const navigate = useNavigate();
-  const [entered, setEntered] = useState(false);
+  const location = useLocation();
+  const [entered, setEntered] = useState(location.state?.entered || false);
   const [zip, setZip] = useState("");
-  const [saveZip, setSaveZip] = useState(false);
+  const [userLocation, setUserLocation] = useState("");
 
-  const handleEnter = () => {
-    if (saveZip && zip.trim()) {
+  useEffect(() => {
+    const savedLocation = localStorage.getItem("userLocation");
+    const savedZip = localStorage.getItem("savedLocation");
+    if (savedLocation) {
+      setUserLocation(savedLocation);
+    }
+    if (savedZip) {
+      setZip(savedZip);
+    }
+  }, []);
+
+  const getCityStateFromZipcode = async (zipcode) => {
+    const response = await fetch(
+      'https://noggin.rea.gent/elaborate-monkey-7948',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer rg_v1_v1sngmgw1epn6hi6d7syr2qwxcsof6mplcek_ngk',
+        },
+        body: JSON.stringify({
+          "zipcode": zipcode,
+        }),
+      }
+    );
+    
+    const cityState = await response.text();
+    setUserLocation(cityState);
+    localStorage.setItem("userLocation", cityState);
+    return cityState;
+  };
+
+  const getLocationAndZipcode = () => {
+    if (!navigator.geolocation) {
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1&accept-language=en`
+        );
+        
+        const data = await response.json();
+        const zipcode = data.address?.postcode;
+        
+        if (zipcode) {
+          setZip(zipcode);
+          localStorage.setItem("savedLocation", zipcode);
+          await getCityStateFromZipcode(zipcode);
+        }
+      }
+    );
+  };
+
+  const handleEnter = async () => {
+    if (zip.trim()) {
       localStorage.setItem("savedLocation", zip.trim());
+      await getCityStateFromZipcode(zip.trim());
     }
     setEntered(true); // unlock the buttons
   };
@@ -23,8 +75,17 @@ function Home() {
   return (
     <div className="container">
       <h1>Go Green</h1>
-      <h3>Berkeley</h3>
-      <h4>Please type or tap the map button to share your location</h4>
+      {userLocation && <h3>{userLocation}</h3>}
+      {!userLocation && <h4>Please type your zip code or allow location access.</h4>}
+    
+      <div>
+        <button 
+          className="go-button" 
+          onClick={getLocationAndZipcode}
+        >
+          📍 Get My Location
+        </button>
+      </div>
     
       <div>
         <input
@@ -33,15 +94,27 @@ function Home() {
         />
       </div>
 
-      <div>
-        <input
-          type="checkbox"
-          id="zipcheckbox"
-          checked={saveZip}
-          onChange={(e) => setSaveZip(e.target.checked)}
-        />
-        <label htmlFor="zipcheckbox">Save this location</label>
-      </div>
+                <div style={{ marginTop: "0.1rem" }}>
+            <button
+              className="go-button"
+              onClick={async () => {
+                if (zip.trim()) {
+                  localStorage.setItem("savedLocation", zip.trim());
+                  await getCityStateFromZipcode(zip.trim());
+                }
+              }}
+              disabled={!zip.trim()}
+              style={{
+                fontSize: "0.9rem",
+                padding: "0.5rem 1rem",
+                minWidth: "auto"
+              }}
+            >
+              Update Location
+            </button>
+          </div>
+
+
 
       <div style={{ maxWidth: "200px", margin: "2rem auto" }}>
         {!entered ? (
@@ -65,9 +138,12 @@ function Home() {
 // -----------------------------------PageShell component-----------------------------------
 function PageShell({ title, children, backTo = "/" }) {
   const navigate = useNavigate();
+  const userLocation = localStorage.getItem("userLocation") || "";
+  
   return (
     <div className="container">
-      <button className="go-button" onClick={() => navigate(backTo)}>Back</button>
+      <button className="go-button" onClick={() => navigate("/", { state: { entered: true } })}>Back</button>
+      {userLocation && <h3 style={{ marginTop: "1rem", marginBottom: "0.5rem" }}>{userLocation}</h3>}
       <h2>{title}</h2>
       {children}
     </div>
@@ -104,6 +180,34 @@ function Mic() {
 function Chat() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
+  const [aiResponse, setAiResponse] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!q.trim()) return;
+    
+    setIsLoading(true);
+    setAiResponse("");
+    
+    const response = await fetch(
+      'https://noggin.rea.gent/fantastic-felidae-1187',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer rg_v1_c5o5yn557nvnn54dnjlmswub5isa24b9mtwt_ngk',
+        },
+        body: JSON.stringify({
+          "question": q,
+        }),
+      }
+    );
+    
+    const responseText = await response.text();
+    setAiResponse(responseText);
+    setIsLoading(false);
+  };
+
   return (
     <PageShell title="CHAT PAGE">
       <div>
@@ -113,10 +217,48 @@ function Chat() {
           placeholder="What recycling question do you have?"
           value={q}
           onChange={(e) => setQ(e.target.value)}
+          style={{ width: "300px" }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleSubmit();
+            }
+          }}
         />
       </div>
-      <div style={{ marginTop: "20rem" }}>
-        <button className="go-button" onClick={() => navigate("/result")}>click me</button>
+      
+      {/* Chat Response Area*/}
+      <div style={{ 
+        marginTop: "2rem", 
+        marginBottom: "2rem",
+        minHeight: "100px",
+        padding: "1rem",
+        backgroundColor: "#f8f9fa",
+        borderRadius: "8px",
+        border: "1px solid #dee2e6"
+      }}>
+        {isLoading ? (
+          <div style={{ textAlign: "center", color: "#6c757d" }}>
+            Thinking...
+          </div>
+        ) : aiResponse ? (
+          <div style={{ whiteSpace: "pre-wrap" }}>
+            {aiResponse}
+          </div>
+        ) : (
+          <div style={{ textAlign: "center", color: "#6c757d" }}>
+            
+          </div>
+        )}
+      </div>
+      
+      <div>
+        <button 
+          className="go-button" 
+          onClick={handleSubmit}
+          disabled={isLoading || !q.trim()}
+        >
+          {isLoading ? "Processing..." : "Ask AI"}
+        </button>
       </div>
     </PageShell>
   );
@@ -143,11 +285,15 @@ function Items() {
   // -----------------------------------Result page-----------------------------------
 function Result() {
   const navigate = useNavigate();
+  
+  const handleMapClick = () => {
+    navigate("/recenter");
+  };
+  
   return (
     <PageShell title="RESULT PAGE">
-      <h3>Berkeley</h3>
       <div style={{ marginTop: "20rem" }}>
-        <button className="go-button" onClick={() => navigate("/recenter")}>
+        <button className="go-button" onClick={handleMapClick}>
           Recycling Center Near Me
         </button>
       </div>
@@ -157,10 +303,110 @@ function Result() {
 // -----------------------------------Recenter page-----------------------------------
 function Recenter() {
   const navigate = useNavigate();
+  const savedZip = localStorage.getItem("savedLocation") || "Berkeley, CA";
+  
+  // Create Google Maps URL for recycling centers
+  const mapsUrl = `https://www.google.com/maps/search/recycling+centers+near+${encodeURIComponent(savedZip)}`;
+  
+  const openGoogleMaps = () => {
+    window.open(mapsUrl, '_blank', 'noopener,noreferrer');
+  };
+  
+  const recyclingCenters = [
+    {
+      name: "Recycling Center",
+      distance: "0.8 miles"
+    },
+    {
+      name: "Municipal Waste Facility",
+      distance: "2.1 miles"
+    },
+    {
+      name: "Household Hazardous Waste",
+      distance: "3.2 miles"
+    },
+    {
+      name: "Community Recycling",
+      distance: "4.5 miles"
+    },
+    {
+      name: "Sanitary Service",
+      distance: "6.8 miles"
+    }
+  ];
+  
   return (
     <PageShell title="CENTER MAP PAGE">
-      <div style={{ marginTop: "20rem" }}>
-        <button className="go-button" onClick={() => navigate("/")}>Home</button>
+      <div style={{ 
+        marginTop: "2rem",
+        marginBottom: "2rem",
+        padding: "1rem"
+      }}>
+        <h4 style={{ marginBottom: "2rem", textAlign: "center" }}>
+          Recycling Centers Near: {savedZip}
+        </h4>
+        
+        {/* Recycling Centers List */}
+        <div style={{
+          width: "100%",
+          maxWidth: "500px",
+          margin: "0 auto",
+          marginBottom: "2rem"
+        }}>
+          {recyclingCenters.map((center, index) => (
+            <div key={index} style={{
+              border: "1px solid #ddd",
+              borderRadius: "8px",
+              padding: "1rem",
+              marginBottom: "1rem",
+              backgroundColor: "#fff",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+            }}>
+              <div style={{ 
+                display: "flex", 
+                justifyContent: "space-between", 
+                alignItems: "center"
+              }}>
+                <h5 style={{ 
+                  margin: "0", 
+                  color: "#1e4d2b", 
+                  fontSize: "1.1rem",
+                  fontWeight: "bold"
+                }}>
+                  {index + 1}. {center.name}
+                </h5>
+                <span style={{ 
+                  backgroundColor: "#1e4d2b", 
+                  color: "white", 
+                  padding: "0.2rem 0.5rem", 
+                  borderRadius: "12px",
+                  fontSize: "0.8rem",
+                  fontWeight: "bold"
+                }}>
+                  {center.distance}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        <div style={{ 
+          display: "flex", 
+          gap: "1rem", 
+          justifyContent: "center",
+          flexWrap: "wrap"
+        }}>
+                             <button
+                     className="go-button"
+                     onClick={openGoogleMaps}
+                   >
+                     Open Google Maps
+                   </button>
+          
+          <button className="go-button" onClick={() => navigate("/")}>
+            Home
+          </button>
+        </div>
       </div>
     </PageShell>
   );
