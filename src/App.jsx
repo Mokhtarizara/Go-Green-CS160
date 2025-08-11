@@ -5,8 +5,10 @@ function Home() {
   const location = useLocation();
   const [entered, setEntered] = useState(location.state?.entered || false);
   const [zip, setZip] = useState("");
+  //CHANGED THIS
   const [userLocation, setUserLocation] = useState("");
 
+  //CHANGED THIS
   useEffect(() => {
     const savedLocation = localStorage.getItem("userLocation");
     const savedZip = localStorage.getItem("savedLocation");
@@ -18,6 +20,7 @@ function Home() {
     }
   }, []);
 
+  //CHANGED THIS
   const getCityStateFromZipcode = async (zipcode) => {
     const response = await fetch(
       'https://noggin.rea.gent/elaborate-monkey-7948',
@@ -39,6 +42,7 @@ function Home() {
     return cityState;
   };
 
+  //CHANGED THIS
   const getLocationAndZipcode = () => {
     if (!navigator.geolocation) {
       return;
@@ -64,6 +68,7 @@ function Home() {
     );
   };
 
+  //CHANGED THIS
   const handleEnter = async () => {
     if (zip.trim()) {
       localStorage.setItem("savedLocation", zip.trim());
@@ -75,9 +80,12 @@ function Home() {
   return (
     <div className="container">
       <h1>Go Green</h1>
+      {/*CHANGED THIS*/}
       {userLocation && <h3>{userLocation}</h3>}
+      {/*CHANGED THIS*/}
       {!userLocation && <h4>Please type your zip code or allow location access.</h4>}
     
+      {/*CHANGED THIS*/}
       <div>
         <button 
           className="go-button" 
@@ -94,7 +102,8 @@ function Home() {
         />
       </div>
 
-                <div style={{ marginTop: "0.1rem" }}>
+      {/*CHANGED THIS*/}
+      <div style={{ marginTop: "0.1rem" }}>
             <button
               className="go-button"
               onClick={async () => {
@@ -138,11 +147,14 @@ function Home() {
 // -----------------------------------PageShell component-----------------------------------
 function PageShell({ title, children, backTo = "/" }) {
   const navigate = useNavigate();
+  //CHANGED THIS
   const userLocation = localStorage.getItem("userLocation") || "";
   
   return (
     <div className="container">
+      {/*CHANGED THIS*/}
       <button className="go-button" onClick={() => navigate("/", { state: { entered: true } })}>Back</button>
+      {/*CHANGED THIS*/}
       {userLocation && <h3 style={{ marginTop: "1rem", marginBottom: "0.5rem" }}>{userLocation}</h3>}
       <h2>{title}</h2>
       {children}
@@ -180,9 +192,11 @@ function Mic() {
 function Chat() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
+  //CHANGED THIS
   const [aiResponse, setAiResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  //CHANGED THIS
   const handleSubmit = async () => {
     if (!q.trim()) return;
     
@@ -211,6 +225,7 @@ function Chat() {
   return (
     <PageShell title="CHAT PAGE">
       <div>
+        {/*CHANGED THIS*/}
         <input
           type="text"
           id="chat-input"
@@ -226,7 +241,7 @@ function Chat() {
         />
       </div>
       
-      {/* Chat Response Area*/}
+      {/*CHANGED THIS*/}
       <div style={{ 
         marginTop: "2rem", 
         marginBottom: "2rem",
@@ -252,6 +267,7 @@ function Chat() {
       </div>
       
       <div>
+        {/*CHANGED THIS*/}
         <button 
           className="go-button" 
           onClick={handleSubmit}
@@ -286,6 +302,7 @@ function Items() {
 function Result() {
   const navigate = useNavigate();
   
+  //CHANGED THIS
   const handleMapClick = () => {
     navigate("/recenter");
   };
@@ -301,17 +318,20 @@ function Result() {
   );
 }
 // -----------------------------------Recenter page-----------------------------------
+//CHANGED THIS
 function Recenter() {
   const navigate = useNavigate();
   const savedZip = localStorage.getItem("savedLocation") || "Berkeley, CA";
   
-  // Create Google Maps URL for recycling centers
+  //CHANGED THIS
   const mapsUrl = `https://www.google.com/maps/search/recycling+centers+near+${encodeURIComponent(savedZip)}`;
   
+  //CHANGED THIS
   const openGoogleMaps = () => {
     window.open(mapsUrl, '_blank', 'noopener,noreferrer');
   };
   
+  //CHANGED THIS
   const recyclingCenters = [
     {
       name: "Recycling Center",
@@ -346,7 +366,7 @@ function Recenter() {
           Recycling Centers Near: {savedZip}
         </h4>
         
-        {/* Recycling Centers List */}
+        {/*CHANGED THIS*/}
         <div style={{
           width: "100%",
           maxWidth: "500px",
@@ -390,6 +410,7 @@ function Recenter() {
           ))}
         </div>
         
+        {/*CHANGED THIS*/}
         <div style={{ 
           display: "flex", 
           gap: "1rem", 
@@ -433,6 +454,7 @@ export default function App() {
       <Route path="/chat" element={<Chat />} />
       <Route path="/items" element={<Items />} />
       <Route path="/result" element={<Result />} />
+      {/*CHANGED THIS*/}
       <Route path="/recenter" element={<Recenter />} />
       <Route path="/compost" element={<Compost />} />
       <Route path="/paper" element={<Paper />} />
