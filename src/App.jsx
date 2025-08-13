@@ -589,17 +589,24 @@ function Mic() {
     //
     //
     //***                  replace.         ******************************** */
+// import fetch from 'node-fetch'; // for node.js
+
     const res = await fetch(
-      'https://noggin.rea.gent/fantastic-felidae-1187',
+      'https://noggin.rea.gent/alleged-starfish-2269',
       {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer rg_v1_c5o5yn557nvnn54dnjlmswub5isa24b9mtwt_ngk',
+          Authorization: 'Bearer rg_v1_w3a95r6vs0y873skcucns075e6fl78ebr2qg_ngk',
         },
-        body: form,
+        body: JSON.stringify({
+        "body": form,
         signal: requestAbortRef.current.signal,
+        }), // how do i capture the audio and make it into text to pass into api
+        //signal: requestAbortRef.current.signal,
       }
-    );
+    ); 
+      
+    
     
     if (!res.ok) {
       const text = await res.text().catch(() => "");
@@ -804,7 +811,6 @@ function Result() {
   );
 }
 
-// -----------------------------------Recenter page-----------------------------------
 // -----------------------------------Recenter page-----------------------------------
 function Recenter() {
   const navigate = useNavigate();
