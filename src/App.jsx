@@ -525,7 +525,6 @@ function Mic() {
     });
   };
 
-  // extra option!
   const onKeyDown = (e) => {
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
@@ -563,7 +562,9 @@ function Mic() {
           if (!blob || blob.size === 0) return;
           setLoading(true);
           const { answer } = await sendAudioToServer(blob); 
+          // send the answer to the chat page
           navigate("/chat", { state: { fromMic: true, transcript: "", answer } });
+
         } catch (err) {
           if (err.name === "AbortError") return;
           setError(err.message || "Failed to process audio.");
@@ -588,8 +589,6 @@ function Mic() {
 
     const form = new FormData();
     form.append("audio", audioBlob, "audio.wav");
-
-    
     const res = await fetch(
       'https://noggin.rea.gent/fantastic-felidae-1187',
       {
@@ -688,9 +687,18 @@ function Resultmic() {
 // -----------------------------------Chat page-----------------------------------
 function Chat() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [q, setQ] = useState("");
   const [aiResponse, setAiResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Handle mic response when coming from mic page
+  useEffect(() => {
+    const state = location.state || {};
+    if (state.fromMic && state.answer) {
+      setAiResponse(state.answer);
+    }
+  }, [location]);
 
   const handleSubmit = async () => {
     if (!q.trim()) return;
@@ -769,6 +777,8 @@ function Chat() {
         <button className="go-button" onClick={() => navigate("/recenter")}>
           <FaRecycle /> <span></span> Recycling Center
         </button>
+        <button className="go-button" onClick={() => navigate("/camera")}><IoCamera class name="camera-icon" size={25} /></button>
+
       </div>
       <div> </div>
     </PageShell>
