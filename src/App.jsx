@@ -1,7 +1,7 @@
 //import { useState } from 'react'
 import './App.css'
 import React, { useRef, useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { IoCamera } from "react-icons/io5";
 import { IoIosReturnLeft } from "react-icons/io";
 import { FaMicrophone } from "react-icons/fa";
@@ -12,8 +12,9 @@ import { IoIosReverseCamera } from "react-icons/io";
 import { IoRadioButtonOn } from "react-icons/io5";
 import { IoIosMic } from "react-icons/io";
 import { FaMapMarkerAlt } from "react-icons/fa";
-
-
+import { IoHomeOutline } from "react-icons/io5";
+import { FaRecycle } from "react-icons/fa";
+import { MdOutlineDriveFolderUpload } from "react-icons/md";
 
 
 
@@ -23,8 +24,8 @@ function Home() {
   const [zip, setZip] = useState("");
   const [saveZip, setSaveZip] = useState(false);
   const [userLocation, setUserLocation] = useState("");
-
-
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
 
   useEffect(() => {
     const savedLocation = localStorage.getItem("userLocation");
@@ -83,81 +84,89 @@ function Home() {
     );
   };
 
-    // const handleEnter = () => {
-  //   if (saveZip && zip.trim()) {
-  //     localStorage.setItem("savedLocation", zip.trim());
-  //   }
-  //   setEntered(true); // unlock the buttons
-  // };
-
-  // return (
-  //   <div className="container">
-    
-  //     <div>
-  //       <input
-  //         type="text" id="inputzip" placeholder="Zipcode / City" 
-  //         className="inputzip" value={zip} onChange={(e) => setZip(e.target.value)}
-  //       />
-  //     </div>
 
   const handleEnter = async () => {
-    if (zip.trim()) {
+    if (!zip.trim()) return;
+    
+    setIsVerifying(true);
+    try {
       localStorage.setItem("savedLocation", zip.trim());
-       getCityStateFromZipcode(zip.trim()); //await //need to await this to ensure the location is set before proceeding!! and adding a text alert if the location is not set yet
+      await getCityStateFromZipcode(zip.trim());
+      setEntered(true); // uwe are unlocking the buttons only after  verification
+    } catch (error) {
+      alert("Failed to verify location. Please try again.");
+    } finally {
+      setIsVerifying(false);
     }
-    setEntered(true); // unlock the buttons
   };
-
   return (
     <div className="container">
-      <h1>Go Green</h1>
-      
+      <h1 className='title'>Go Green</h1>
+
       {userLocation && <h3>{userLocation}</h3>}
       
       {!userLocation && <h4>Please type your zip code or allow location access.</h4>}
-    
+   
      
       <div>
-        <button 
+        <button type="button"
           className="location-button small-text-btn " 
           onClick={getLocationAndZipcode}
         >
-         <FaMapMarkerAlt class name="findlocation-icon" size={20} /> Find
-        </button>
+         <FaMapMarkerAlt className="findlocation-icon" size={20} /> <span></span> Find</button>
       </div>
-    
+    <label htmlFor="inputzip">Enter Zipcode or City:</label>
+
       <div>
         <input
-          type="text" id="inputzip" placeholder="Zipcode / City" 
-          className="inputzip" value={zip} onChange={(e) => setZip(e.target.value)}
-        />
+          type="text" id="inputzip" placeholder="Zipcode / City" required minLength={4} maxLength={101}
+          className="inputzip" value={zip} onChange={(e) => {
+            setZip(e.target.value);
+            setNeedsVerification(true);
+            setEntered(false); 
+          }}
+        /> 
       </div>
 
    
-      <div style={{ marginTop: "0.2rem" }}>
+      <div style={{ marginTop: "1rem" }}>
         
             <button
               className="enter-button"
               onClick={async () => {
-                if (zip.trim()) {
+                if (!zip.trim()) return;
+                
+                setIsVerifying(true);
+                try {
                   localStorage.setItem("savedLocation", zip.trim());
                   await getCityStateFromZipcode(zip.trim());
+                  setNeedsVerification(false);
+                } catch (error) {
+                  alert("Failed to verify location. Please try again.");
+                } finally {
+                  setIsVerifying(false);
                 }
               }}
-              disabled={!zip.trim()}
+              disabled={!zip.trim() || isVerifying}
               style={{
                 fontSize: "0.9rem",
                 padding: "0.5rem 1rem",
                 minWidth: "auto"
               }}
             >
-              Update Location
+              {isVerifying ? "Verifying..." : "Update Location"}
             </button>
           </div>   
       <h5>Location required to continue</h5>
       <div style={{ maxWidth: "200px", margin: "0rem auto" }}>
         {!entered ? (
-          <button className="go-button" onClick={handleEnter}><IoIosReturnLeft class name="enter-icon" size={30} /></button>
+          <button 
+            className="go-button" 
+            onClick={handleEnter}
+            disabled={isVerifying || !userLocation || zip.length < 5 || needsVerification}
+          >
+            {isVerifying ? "Verifying..." : <IoIosReturnLeft className="enter-icon" size={30} />}
+          </button>
         ) : (
           <small>You can click on any of these button to get help </small>
         )}
@@ -174,15 +183,20 @@ function Home() {
 }
 
 // -----------------------------------PageShell component-----------------------------------
-
-
 function PageShell({ title, children, backTo = "/" }) {
   const navigate = useNavigate();
   const userLocation = localStorage.getItem("userLocation") || "";
   
+  const handleBackClick = () => {
+    if (backTo === -1) {
+      navigate(-1);
+    } else {
+      navigate(backTo);
+    }
+  };
   return (
     <div className="container">
-      <button className="navBack-button " onClick={() => navigate("/")}><MdNavigateBefore class name="navBack-icon"  /></button>
+      <button className="navBack-button " onClick={handleBackClick}><MdNavigateBefore className="navBack-icon"  /></button>
       {userLocation && <h3 style={{ marginTop: "1rem", marginBottom: "0.5rem" }}>{userLocation}</h3>}
       <h2>{title}</h2>
       {children}
@@ -196,6 +210,7 @@ function Camera() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [capturedPhoto, setCapturedPhoto] = useState(null);
+  const fileInputRef = useRef(null);
 
   // Function to start the camera stream
   const startCamera = async () => {
@@ -205,7 +220,7 @@ function Camera() {
         videoRef.current.srcObject = stream;
       }
     } catch (err) {
-      alert("Could not access camera: " + err.message);
+      alert("not able to accses camera: " + err.message);
     }
   };
 
@@ -238,10 +253,29 @@ function Camera() {
       video.srcObject.getTracks().forEach((track) => track.stop());
     }
   };
-
   const handleRetake = () => {
     setCapturedPhoto(null);
     startCamera();  // Restart camera stream on retake
+  };
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setCapturedPhoto(e.target.result);
+        // Stop camera stream when file is uploaded
+        if (videoRef.current && videoRef.current.srcObject) {
+          videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+        }
+      };
+      reader.readAsDataURL(file);
+    } else {
+      alert("select a valid image file.");
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current.click();
   };
 
   return (
@@ -252,38 +286,188 @@ function Camera() {
       {!capturedPhoto ? (
         <>
           <video className="camera-frame" ref={videoRef} autoPlay playsInline />
-          <button className="capture-button" onClick={handleCapture} style={{ marginTop: "1rem" }}><IoRadioButtonOn class name="mic-icon" size={50}/></button>
+          <div style={{ marginTop: "1rem", textAlign: "center" }}>
+            <button className="capture-button" onClick={handleCapture}>
+              <IoRadioButtonOn className="capture-icon" size={50}/>
+            </button>
+            <div style={{ marginTop: "1rem" }}>
+              <button className="go-button" onClick={handleUploadClick}>
+                 <MdOutlineDriveFolderUpload className="upload-icon" size={30}  />
+              </button>
+            </div>
+          </div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept="image/*"
+            style={{ display: "none" }}
+          />
         </>
       ) : (
         <>
-          <img  className="camera-frame" src={capturedPhoto} alt="Captured" style={{ width: "100%", maxWidth: 400 }} />
+          <img  className="camera-frame" src={capturedPhoto} alt="Captured" style={{ width: "100%", maxWidth: "100%", maxWidth: 400 }} />
           
           <p style={{ marginTop: "1rem" }}>Photo captured successfully!</p>
           
-          <div style={{ marginTop: "3rem" }}>
-            
-            <button className="camera-button" onClick={handleRetake}><IoIosReverseCamera class name="mic-icon" size={30} /></button>
-            <button className="Continue-button" onClick={() => navigate("/resultcamera")} >Continue</button>
+          <div style={{ marginTop: "2rem", textAlign: "center" }}>
+            <div style={{ marginTop: "1rem" }}>
+              <button className="camera-button" onClick={handleRetake}>
+                <IoIosReverseCamera className="retake-icon" size={30} />
+              </button>
+              <button className="go-button" onClick={handleUploadClick}>
+               <MdOutlineDriveFolderUpload className="upload-icon" size={30}  />
 
+              </button>
+            </div>
+            <div style={{ marginTop: "1rem" }}>
+              <button className="Continue-button" onClick={() => navigate("/resultcamera", { state: { photo: capturedPhoto, userLocation: localStorage.getItem("userLocation") } })}>
+                Continue
+              </button>
+            </div>
           </div>
         </>
       )}
-
       <canvas ref={canvasRef} style={{ display: "none" }} />
     </div>
   );
 }
 
 // -----------------------------------CAMERA RESULT PAGE-----------------------------------
-
 function Resultcamera() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState("");
+  const [analysisError, setAnalysisError] = useState("");
+  const [photo, setPhoto] = useState(null);
+  const [userLocation, setUserLocation] = useState("");
+
+  useEffect(() => {
+    const state = location.state;
+    if (state && state.photo) {
+      setPhoto(state.photo);
+      if (state.userLocation) {
+        setUserLocation(state.userLocation);
+      }
+      analyzePhoto(state.photo, state.userLocation);
+    }
+  }, [location]);
+  const analyzePhoto = async (imageDataUrl, userLoc) => {
+    setIsAnalyzing(true);
+    setAnalysisError("");
+    
+    try {
+      const response = await fetch(
+        'https://noggin.rea.gent/constitutional-anglerfish-9162',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer rg_v1_ld2m3dyau47sk71gaed1xy99nk6opufcih7v_ngk',
+          },
+          body: JSON.stringify({
+            "user_item": imageDataUrl,
+            "user_location": userLoc || "Unknown",
+          }),
+        }
+      );
+      
+      const result = await response.text();
+      
+      let formattedResult = result;
+      try {
+        const parsedResult = JSON.parse(result);
+        formattedResult = formatApiResponse(parsedResult);
+      } catch (parseError) {
+        formattedResult = result;
+      }
+      setAnalysisResult(formattedResult);
+    } catch (error) {
+      setAnalysisError("Failed to analyze photo. Please try again.");
+      console.error("Analysis error:", error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const formatApiResponse = (data) => {
+    if (typeof data === 'string') {
+      return data;
+    }
+    if (typeof data === 'object' && data !== null) {
+      let formatted = '';
+      if (data.response) {
+        formatted += data.response + '\n\n';
+      }if (data.result) {
+        formatted += data.result + '\n\n';
+      }if (data.message) {
+        formatted += data.message + '\n\n';
+      }if (data.description) {
+        formatted += data.description + '\n\n';
+      }if (data.type) {
+        formatted += `Type: ${data.type}\n`;
+      }if (data.category) {
+        formatted += `Category: ${data.category}\n`;
+      }if (data.recyclable !== undefined) {
+        formatted += `Recyclable: ${data.recyclable ? 'Yes' : 'No'}\n`;
+      }if (data.instructions) {
+        formatted += `\nInstructions:\n${data.instructions}`;
+      }if (data.tips) {
+        formatted += `\n\nTips:\n${data.tips}`;
+      }     
+      if (!formatted) {
+        Object.entries(data).forEach(([key, value]) => {
+          if (value !== null && value !== undefined) {
+            const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+            if (typeof value === 'object') {
+              formatted += `${formattedKey}:\n${JSON.stringify(value, null, 2)}\n\n`;
+            } else {
+              formatted += `${formattedKey}: ${value}\n\n`;
+            }
+          }
+        });
+      }
+      
+      return formatted.trim();
+    }
+    
+    return String(data);
+  };
+
   return (
-    <PageShell title="CAMERA RESULT">
-      <div style={{ marginTop: "20rem" }}>
-        <button className="go-button" onClick={() => navigate("/recenter")}>
-          Recycling Center
-        </button>
+    <PageShell title="Camera Response" backTo={-1}>
+      <div style={{ marginTop: "2rem" }}>
+        {photo && (
+          <img 
+            src={photo} 
+            alt="Captured" 
+            style={{ width: "100%", maxWidth: 400, marginBottom: "1rem" }} 
+          />
+        )}
+        
+        <h4>Photo Analysis</h4>
+        
+        <div className="chat-output-box" style={{ marginTop: "1rem" }}>
+          {isAnalyzing ? (
+            <div className="chat-muted">Analyzing photo...</div>
+          ) : analysisError ? (
+            <div className="chat-muted" style={{ color: "#923647ff" }}>{analysisError}</div>
+          ) : analysisResult ? (
+            <div className="chat-response">{analysisResult}</div>
+          ) : (
+            <div className="chat-muted"></div>
+          )}
+        </div>
+        
+        <div style={{ marginTop: "2rem" }}>
+          <button className="go-button" onClick={() => navigate("/recenter")}>
+            <FaRecycle /> <span></span> Recycling Center
+          </button>
+          <button className="go-button" onClick={() => navigate("/")}>
+            <IoHomeOutline /> <span></span>
+          </button>
+        </div>
       </div>
     </PageShell>
   );
@@ -293,7 +477,7 @@ function Resultcamera() {
 function Mic() {
   const navigate = useNavigate();
   const [micOn, setMicOn] = useState(false);
-  const [loading, setLoading] = useState(false); // network / processing state
+  const [loading, setLoading] = useState(false); 
   const [error, setError] = useState(null);
   const mediaStreamRef = useRef(null);
   const recorderRef = useRef(null);
@@ -301,7 +485,6 @@ function Mic() {
   const requestAbortRef = useRef(null);
   const mimeTypeRef = useRef(null);
 
-  // audio format for mediarecorder to choose
   const pickMimeType = () => {
     if (window.MediaRecorder?.isTypeSupported?.("audio/webm;codecs=opus")) {
       return "audio/webm;codecs=opus";
@@ -365,15 +548,12 @@ function Mic() {
         try {
           const blob = new Blob(chunksRef.current, { type: mimeTypeRef.current || "audio/webm" });
           if (!blob || blob.size === 0) return;
-          // Sending to backend for STT + LLM
           setLoading(true);
           const { transcript, answer } = await sendAudioToServer(blob);
          
           navigate("/chat", { state: { fromMic: true, transcript, answer } });
-           //navigate(-1);
 
         } catch (err) {
-          // if the request was canceled, we ignore the error
           if (err.name === "AbortError") return;
           setError(err.message || "Failed to process audio.");
         } finally {
@@ -399,12 +579,8 @@ function Mic() {
     const form = new FormData();
     form.append("audio", audioBlob, `speech.${ext}`);
 
-//need to change the url to our API endpoint later
-    // const res = await fetch("/api/voice", {
-    //   method: "POST",
-    //   body: form,
-    //   signal: requestAbortRef.current.signal,
-    // });
+//need  the url to our API endpoint later
+    // 
 
     if (!res.ok) {
       const text = await res.text().catch(() => "");
@@ -412,7 +588,7 @@ function Mic() {
     }
     return res.json(); 
   };
-// stop all media and requests
+
   const stopAll = ({ cancelRequest = false } = {}) => {
     try {
       if (recorderRef.current && recorderRef.current.state !== "inactive") {
@@ -440,7 +616,8 @@ function Mic() {
   }, []);
 
   return (
-    <PageShell title="Speak to AI" >
+     <PageShell title="Speak to AI" backTo={-1}>
+
 
       <div className={`mic-visual ${micOn ? "active" : ""}`}>
         {!micOn && <p className="mic-hint" aria-live="polite">{loading ? "Processing…" : "Tap to speak"}</p>}
@@ -451,7 +628,6 @@ function Mic() {
         )}
       </div>
 
-      {/* our controls are here */}
       <div style={{ marginTop: "1rem", textAlign: "center" }}>
         <button
           type="button"
@@ -578,7 +754,6 @@ function Mic() {
 
 
 // -----------------------------------MIC Result page-----------------------------------
-
 function Resultmic() {
   const navigate = useNavigate();
   return (
@@ -594,7 +769,6 @@ function Resultmic() {
 }
 
 // -----------------------------------Chat page-----------------------------------
-
 function Chat() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
@@ -632,20 +806,35 @@ function Chat() {
         <h5>What recycling question do you have?</h5>
 
         <div className="chat-inline-wrap">
-          <input
-            type="text"
-            id="chat-input"
-            placeholder="Type Here..."
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-          />
-
-          <IoIosMic
-            onClick={() => navigate("/mic")}
-            className="mic-icon"
-            size={30} 
-          />
+          <div style={{ position: "relative", width: "100%" }}>
+            <input
+              type="text"
+              id="chat-input"
+              placeholder="Type Here..."
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              style={{ paddingRight: "80px" }}
+            />
+            
+            <div style={{ position: "absolute", right: "5px", top: "50%", transform: "translateY(-50%)", display: "flex", gap: "5px" }}>
+              <button
+                className="go-button"
+                onClick={handleSubmit}
+                disabled={isLoading || !q.trim()}
+                style={{ padding: "5px 10px", fontSize: "0.8rem" }}
+              >
+                {isLoading ? "..." : "Ask AI"}
+              </button>
+              <span></span><span></span> <span></span><span></span><span></span><span></span>
+              <IoIosMic
+                onClick={() => navigate("/mic")}
+                className="mic-icon"
+                size={30} 
+                style={{ cursor: "pointer" }}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -660,26 +849,16 @@ function Chat() {
       </div>
 
       <div>
-        <button
-          className="go-button"
-          onClick={handleSubmit}
-          disabled={isLoading || !q.trim()}
-        >
-          {isLoading ? "Processing..." : "Ask AI"}
+        <button className="go-button" onClick={() => navigate("/recenter")}>
+          <FaRecycle /> <span></span> Recycling Center
         </button>
-       <button className="go-button" onClick={() => navigate("/recenter")}>
-          Recycling Center
-        </button>
-
       </div>
       <div> </div>
     </PageShell>
   );
 }
 
-
 // -----------------------------------Result page-----------------------------------
-
 function Result() {
   const navigate = useNavigate();
   
@@ -691,8 +870,7 @@ function Result() {
     <PageShell title="RESULT PAGE">
       <div style={{ marginTop: "20rem" }}>
         <button className="go-button" onClick={handleMapClick}>
-          Recycling Center Near Me
-        </button>
+          <FaRecycle /> <span></span> Center </button>
       </div>
     </PageShell>
   );
@@ -739,7 +917,7 @@ function Recenter() {
             Open Google Maps
           </button>
           <button className="go-button" onClick={() => navigate("/")}>
-            Home
+            <IoHomeOutline /> <span></span> 
           </button>
         </div>
       </div>
@@ -770,10 +948,6 @@ export default function App() {
       <Route path="/resultcamera" element={<Resultcamera />} />
       <Route path="/recenter" element={<Recenter />} />
       
-      
-
-
-
 
 // ---- Our 404 Page ----
       <Route path="*" element={<div className="container">
