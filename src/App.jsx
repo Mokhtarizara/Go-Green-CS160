@@ -549,9 +549,11 @@ function Mic() {
           const blob = new Blob(chunksRef.current, { type: mimeTypeRef.current || "audio/webm" });
           if (!blob || blob.size === 0) return;
           setLoading(true);
-          const { transcript, answer } = await sendAudioToServer(blob);
+          // Changed to get 'answer' instead of 'transcript' and 'answer'
+          const { answer } = await sendAudioToServer(blob); 
          
-          navigate("/chat", { state: { fromMic: true, transcript, answer } });
+          // Pass the answer to the chat page
+          navigate("/chat", { state: { fromMic: true, transcript: "", answer } });
 
         } catch (err) {
           if (err.name === "AbortError") return;
@@ -575,18 +577,29 @@ function Mic() {
   const sendAudioToServer = async (audioBlob) => {
     requestAbortRef.current = new AbortController();
 
-    const ext = (mimeTypeRef.current || "").includes("webm") ? "webm" : "wav";
     const form = new FormData();
-    form.append("audio", audioBlob, `speech.${ext}`);
+    form.append("audio", audioBlob, "audio.wav");
 
-//need  the url to our API endpoint later
-    // 
-
+    // Use the same API endpoint as the chat component and send the audio data
+    const res = await fetch(
+      'https://noggin.rea.gent/fantastic-felidae-1187',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer rg_v1_c5o5yn557nvnn54dnjlmswub5isa24b9mtwt_ngk',
+        },
+        body: form,
+        signal: requestAbortRef.current.signal,
+      }
+    );
+    
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       throw new Error(`Server error ${res.status}${text ? `: ${text}` : ""}`);
     }
-    return res.json(); 
+    
+    const responseText = await res.text();
+    return { answer: responseText };
   };
 
   const stopAll = ({ cancelRequest = false } = {}) => {
@@ -643,115 +656,12 @@ function Mic() {
       </div>
       <div style={{ textAlign: "center", marginTop: "0.75rem" }}>
         {micOn && <small>Listening… tap again to stop.</small>}
-        {!micOn && loading && <small>Sending audio to AI…</small>}
+        {!micOn && loading && <small>Thinking…</small>}
         {error && <div role="alert" style={{ color: "#923647ff", marginTop: "0.5rem" }}>{error}</div>}
       </div>
     </PageShell>
   );
 }
-
-
-// ----------------------------------- mic page with old code that wasnt merge with visual effect -----------------------------------
-//unmergeded code
-//this end needs to be changed later to give the result from AI on chat page from what user asked in the mic page
-
-// function MicModal({ isOpen, onClose }) {
-//   const [recording, setRecording] = useState(false);
-//   const [audioURL, setAudioURL] = useState(null);
-//   const mediaRecorderRef = useRef(null);
-//   const audioChunksRef = useRef([]);
-
-//   useEffect(() => {
-//     // Cleanup audio URL on modal close
-//     if (!isOpen) {
-//       setAudioURL(null);
-//       setRecording(false);
-//       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-//         mediaRecorderRef.current.stop();
-//       }
-//     }
-//   }, [isOpen]);
-
-//   const startRecording = async () => {
-//     try {
-//       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-//       mediaRecorderRef.current = new MediaRecorder(stream);
-//       audioChunksRef.current = [];
-
-//       mediaRecorderRef.current.ondataavailable = (e) => {
-//         audioChunksRef.current.push(e.data);
-//       };
-
-//       mediaRecorderRef.current.onstop = () => {
-//         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" });
-//         const url = URL.createObjectURL(audioBlob);
-//         setAudioURL(url);
-//       };
-
-//       mediaRecorderRef.current.start();
-//       setRecording(true);
-//     } catch (err) {
-//       alert("Error accessing microphone: " + err.message);
-//     }
-//   };
-
-//   const stopRecording = () => {
-//     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-//       mediaRecorderRef.current.stop();
-//       setRecording(false);
-//     }
-//   };
-
-//   if (!isOpen) return null;
-
-//   return (
-//     <div style={{
-//       position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-//       backgroundColor: "rgba(0,0,0,0.5)", display: "flex",
-//       alignItems: "center", justifyContent: "center", zIndex: 1000,
-//     }}>
-//       <div style={{
-//         background: "white", padding: 20, borderRadius: 8,
-//         maxWidth: 400, width: "90%", textAlign: "center",
-//       }}>
-//         <h3>Mic Recorder</h3>
-//         {!recording ? (
-//           <button className="go-button" onClick={startRecording}>Start Recording</button>
-//         ) : (
-//           <button className="go-button" onClick={stopRecording}>Stop Recording</button>
-//         )}
-
-//         {audioURL && (
-//           <div style={{ marginTop: 20 }}>
-//             <audio controls src={audioURL} />
-//           </div>
-//         )}
-
-//         <div style={{ marginTop: 20 }}>
-//           <button className="go-button" onClick={onClose}>Close</button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-// function Mic() {
-//   const navigate = useNavigate();
-//   const [modalOpen, setModalOpen] = useState(false);
-
-//   return (
-//     <PageShell title="Voice Assistant" backTo="/chat">
-//       <button className="go-button" onClick={() => setModalOpen(true)}>Tap to Speak</button>
-
-//       <MicModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
-
-//       <div style={{ marginTop: "20rem" }}>
-//         <button className="go-button" onClick={() => navigate("/result")}>Next</button>
-//       </div>
-//     </PageShell>
-//   );
-// }
-
 
 // -----------------------------------MIC Result page-----------------------------------
 function Resultmic() {
@@ -774,6 +684,16 @@ function Chat() {
   const [q, setQ] = useState("");
   const [aiResponse, setAiResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const location = useLocation();
+
+  // New useEffect to handle response from Mic page
+  useEffect(() => {
+    if (location.state && location.state.fromMic && location.state.answer) {
+      setAiResponse(location.state.answer);
+      // Clean up state so we don't show the response on subsequent visits
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleSubmit = async () => {
     if (!q.trim()) return;
@@ -924,15 +844,6 @@ function Recenter() {
     </PageShell>
   );
 }
-
-// -----------------------------------Stubs for Recycling Pages-----------------------------------
-// we will use these pages for better navigation
-
-// const Compost = () => <PageShell title="COMPOST PAGE" />;
-// const Paper = () => <PageShell title="MIXED PAPER PAGE" />;
-// const CleanPlastic = () => <PageShell title="CLEAN PLASTIC PAGE" />;
-// const Landfill = () => <PageShell title="LANDFILL PAGE" />;
-// const Electronic = () => <PageShell title="ELECTRONIC PAGE" />;
 
 // ---- Our Router ----
 export default function App() {
