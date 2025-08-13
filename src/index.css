@@ -18,6 +18,11 @@ body {
   border-radius: 1rem;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.36);
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 90vh;
 }
 
 /* Header */
@@ -313,13 +318,13 @@ body {
   }
 }
 
-
-
-
 .recenter-container {
   margin-top: 2rem;
   margin-bottom: 2rem;
   padding: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 400px; 
 }
 
 /* Title */
