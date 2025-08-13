@@ -600,11 +600,12 @@ function Mic() {
         },
         body: JSON.stringify({
         "body": form,
+        "zipcode": savedZip,
         signal: requestAbortRef.current.signal,
         }), // how do i capture the audio and make it into text to pass into api
         //signal: requestAbortRef.current.signal,
       }
-    ); 
+    ).then(res => res.text()); 
       
     
     
