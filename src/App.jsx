@@ -781,12 +781,6 @@ function Chat() {
     setIsLoading(true);
     setAiResponse("");
 
-    const handleSubmit = async () => {
-    if (!q.trim()) return;
-
-    setIsLoading(true);
-    setAiResponse("");
-
     const response = await fetch(
       'https://noggin.rea.gent/yelling-locust-5253', //ASHWINI CODE JUST CHANGED FOR NEW AI
       {
