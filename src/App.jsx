@@ -581,6 +581,14 @@ function Mic() {
     form.append("audio", audioBlob, "audio.wav");
 
     // Use the same API endpoint as the chat component and send the audio data
+    // prompt it to make it yap less and get to the point
+    //
+    //
+    //
+    //
+    //
+    //
+    //***                  replace.         ******************************** */
     const res = await fetch(
       'https://noggin.rea.gent/fantastic-felidae-1187',
       {
@@ -797,11 +805,16 @@ function Result() {
 }
 
 // -----------------------------------Recenter page-----------------------------------
+// -----------------------------------Recenter page-----------------------------------
 function Recenter() {
   const navigate = useNavigate();
-  const savedZip = localStorage.getItem("savedLocation") || "Berkeley, CA";
+  // Get both the saved location (city, state) and the zip code
+  const userLocation = localStorage.getItem("userLocation") || "Berkeley, CA";
+  const savedZip = localStorage.getItem("savedLocation") || "Berkeley, CA"; // savedZip is no longer used for the mapsUrl
 
-  const mapsUrl = `https://www.google.com/maps/search/recycling+centers+near+${encodeURIComponent(savedZip)}`;
+  // Use the userLocation for the Google Maps URL
+  // We'll use the userLocation to provide a more specific search query.
+  const mapsUrl = `http://maps.google.com/?q=recycling+center+near+${encodeURIComponent(userLocation)}`;
 
   const openGoogleMaps = () => {
     window.open(mapsUrl, "_blank", "noopener,noreferrer");
@@ -817,7 +830,7 @@ function Recenter() {
     <PageShell>
       <div className="recenter-container">
         <h4 className="recenter-title">
-          Recycling Centers Near: {savedZip}
+          Recycling Centers Near: {userLocation}
         </h4>
         <div className="recycling-list">
           {recyclingCenters.map((center, index) => (
