@@ -781,16 +781,22 @@ function Chat() {
     setIsLoading(true);
     setAiResponse("");
 
+    const handleSubmit = async () => {
+    if (!q.trim()) return;
+
+    setIsLoading(true);
+    setAiResponse("");
+
     const response = await fetch(
-      'https://noggin.rea.gent/fantastic-felidae-1187',
+      'https://noggin.rea.gent/yelling-locust-5253', //ASHWINI CODE JUST CHANGED FOR NEW AI
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer rg_v1_c5o5yn557nvnn54dnjlmswub5isa24b9mtwt_ngk',
+          Authorization: 'Bearer rg_v1_o1388y4kdvdid2c10jcb55l3sfcvd7osarr9_ngk', //ASHWINI CODE JUST CHANGED FOR NEW AI
         },
         body: JSON.stringify({
-          "question": q,
+          "question": q, //ASHWINI CODE JUST CHANGED FOR NEW AI
         }),
       }
     );
