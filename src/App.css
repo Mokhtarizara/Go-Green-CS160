@@ -1,8 +1,12 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
   text-align: center;
+  min-height: 100vh;
+  /* Added for consistent layout with the container */
+  display: flex;
+  flex-direction: column;
 }
 
 .logo {
@@ -39,4 +43,21 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/*
+  These classes are used to center elements inside containers.
+*/
+.camera-container, .mic-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.camera-frame {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  margin: 0 auto;
 }

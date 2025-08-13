@@ -2,33 +2,38 @@
 
 /* App base */
 body {
-  margin: 5px;
-  padding: 10px;
+  margin: 0;
+  padding: 0;
   font-family: Arial, sans-serif;
   background: #f7f7f7;
 }
 
 /* Card container */
 .container {
-  max-width: 400px;
-  margin: 10vh auto;
+  max-width: 100vw;
+  margin: 0;
   padding: 2rem;
   background: white;
   border-radius: 1rem;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.36);
   text-align: center;
+  min-height: 100vh;
+  /* Added to space out content evenly */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 /* Buttons */
 .go-button {
-  margin: 0.5rem; /* space all around the button */
+  margin: 0.5rem;
   padding: 1rem 2rem;
   font-size: 1.2rem;
   border: none;
   border-radius: 5rem;
   background: #00513a;
   color: white;
-  cursor: pointer;      
+  cursor: pointer;
   transition: background 0.2s;
 }
 .go-button:hover {
@@ -49,9 +54,9 @@ body {
 
 /* chat Inputs */  
 #chat-input {
-  width: 200px; 
-  font-size: 16px; 
-  padding: 8px; 
+  width: 200px;
+  font-size: 16px;
+  padding: 8px;
 }
 
 #zipcheckbox {
@@ -59,7 +64,7 @@ body {
 }
 
 .inputzip {
-  width: 200px;          
-  font-size: 16px; 
-  padding: 8px; 
+  width: 200px;
+  font-size: 16px;
+  padding: 8px;
 }
