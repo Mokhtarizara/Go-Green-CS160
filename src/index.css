@@ -1,7 +1,8 @@
 
+
 /* App base */
 body {
-  margin: 1px;
+  margin: -1px;
   font-size: 16px;
   line-height:2.3; /* longerline height */
   padding: 0.5px;
@@ -11,18 +12,13 @@ body {
 
 /* Card container */
 .container {
-  max-width: 400px;
+  max-width: 450px;
   margin: 0.5vh auto;
   padding: 2rem;
   background: white;
   border-radius: 1rem;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.36);
   text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 90vh;
 }
 
 /* Header */
@@ -318,13 +314,13 @@ body {
   }
 }
 
+
+
+
 .recenter-container {
   margin-top: 2rem;
   margin-bottom: 2rem;
   padding: 1rem;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 400px; 
 }
 
 /* Title */
@@ -393,7 +389,9 @@ body {
 
 /* our input field for chat */
 .chat-inline-wrap #chat-input {
-  width: 240px;
+  width: 200px;
+  margin-right: 0.6rem;
+  margin-left: -1rem;
   padding-right: 25px;
   border-radius: 20px;
   border: 1px solid #9da1a5ff;

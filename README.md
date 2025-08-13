@@ -32,7 +32,7 @@ It uses artificial intelligence to make recycling easier and more accurate for e
 - Derrick Yong
 -------------------------------------------
 ## Setup Instructions
-- npm install react-router-dom   
-- npm run dev         
+- npm install react-router-dom     
 - npm i react-router-dom
 - npm install react-icons
+- npm run dev       

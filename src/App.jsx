@@ -27,6 +27,11 @@ function Home() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
 
+  const isAllowedLocation = (cityStateString) => {
+    const normalized = (cityStateString || "").toLowerCase();
+    return normalized.includes("berkeley") || normalized.includes("san francisco");
+  };
+
   useEffect(() => {
     const savedLocation = localStorage.getItem("userLocation");
     const savedZip = localStorage.getItem("savedLocation");
@@ -54,8 +59,14 @@ function Home() {
     );
     
     const cityState = await response.text();
+    if (!isAllowedLocation(cityState)) {
+      throw new Error("ERROR. Allowed: San Francisco or Berkeley.");
+    }
     setUserLocation(cityState);
     localStorage.setItem("userLocation", cityState);
+    if (zipcode) {
+      localStorage.setItem("savedLocation", zipcode);
+    }
     return cityState;
   };
 
@@ -66,19 +77,19 @@ function Home() {
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const { latitude, longitude } = position.coords;
-        
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1&accept-language=en`
-        );
-        
-        const data = await response.json();
-        const zipcode = data.address?.postcode;
-        
-        if (zipcode) {
-          setZip(zipcode);
-          localStorage.setItem("savedLocation", zipcode);
-          await getCityStateFromZipcode(zipcode);
+        try {
+          const { latitude, longitude } = position.coords;
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1&accept-language=en`
+          );
+          const data = await response.json();
+          const zipcode = data.address?.postcode;
+          if (zipcode) {
+            setZip(zipcode);
+            await getCityStateFromZipcode(zipcode);
+          }
+        } catch (err) {
+          alert("Location not supported! This app currently supports only San Francisco and Berkeley zip code.");
         }
       }
     );
@@ -90,11 +101,10 @@ function Home() {
     
     setIsVerifying(true);
     try {
-      localStorage.setItem("savedLocation", zip.trim());
       await getCityStateFromZipcode(zip.trim());
       setEntered(true); // uwe are unlocking the buttons only after  verification
     } catch (error) {
-      alert("Failed to verify location. Please try again.");
+      alert("Location not supported! This app currently supports only San Francisco and Berkeley zip code.");
     } finally {
       setIsVerifying(false);
     }
@@ -138,11 +148,10 @@ function Home() {
                 
                 setIsVerifying(true);
                 try {
-                  localStorage.setItem("savedLocation", zip.trim());
                   await getCityStateFromZipcode(zip.trim());
                   setNeedsVerification(false);
                 } catch (error) {
-                  alert("Failed to verify location. Please try again.");
+                  alert("Location not supported! This app currently supports only San Francisco and Berkeley zip code.");
                 } finally {
                   setIsVerifying(false);
                 }
@@ -321,7 +330,7 @@ function Camera() {
               </button>
             </div>
             <div style={{ marginTop: "1rem" }}>
-              <button className="Continue-button" onClick={() => navigate("/resultcamera", { state: { photo: capturedPhoto, userLocation: localStorage.getItem("userLocation") } })}>
+              <button className="Continue-button" onClick={() => navigate("/resultcamera", { state: { photo: capturedPhoto, userLocation: localStorage.getItem("userLocation"), zipcode: localStorage.getItem("savedLocation") } })}>
                 Continue
               </button>
             </div>
@@ -344,13 +353,15 @@ function Resultcamera() {
   const [userLocation, setUserLocation] = useState("");
 
   useEffect(() => {
-    const state = location.state;
-    if (state && state.photo) {
-      setPhoto(state.photo);
-      if (state.userLocation) {
-        setUserLocation(state.userLocation);
-      }
-      analyzePhoto(state.photo, state.userLocation);
+    const state = location.state || {};
+    const photoFromState = state.photo;
+    if (photoFromState) {
+      setPhoto(photoFromState);
+      const locFromState = state.userLocation;
+      const locFromStorage = localStorage.getItem("userLocation") || localStorage.getItem("savedLocation") || "Unknown";
+      const effectiveLoc = (locFromState && String(locFromState).trim()) ? locFromState : locFromStorage;
+      setUserLocation(effectiveLoc);
+      analyzePhoto(photoFromState, effectiveLoc);
     }
   }, [location]);
   const analyzePhoto = async (imageDataUrl, userLoc) => {
@@ -358,6 +369,8 @@ function Resultcamera() {
     setAnalysisError("");
     
     try {
+      const effectiveLoc = (userLoc && String(userLoc).trim()) ? userLoc : (localStorage.getItem("userLocation") || localStorage.getItem("savedLocation") || "Unknown");
+      const zipcode = localStorage.getItem("savedLocation") || "";
       const response = await fetch(
         'https://noggin.rea.gent/constitutional-anglerfish-9162',
         {
@@ -368,7 +381,7 @@ function Resultcamera() {
           },
           body: JSON.stringify({
             "user_item": imageDataUrl,
-            "user_location": userLoc || "Unknown",
+            "zipcode": zipcode,
           }),
         }
       );
@@ -492,7 +505,7 @@ function Mic() {
     if (window.MediaRecorder?.isTypeSupported?.("audio/webm")) {
       return "audio/webm";
     }
-   
+
     return "";
   };
 
@@ -512,7 +525,7 @@ function Mic() {
     });
   };
 
-  // extra option for user to click Space or Enter to toggling the mic
+  // extra option!
   const onKeyDown = (e) => {
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
@@ -531,7 +544,7 @@ function Mic() {
       const recorder = new MediaRecorder(stream, preferred ? { mimeType: preferred } : undefined);
       recorderRef.current = recorder;
       mimeTypeRef.current = recorder.mimeType || preferred || "audio/webm";
-        
+
       chunksRef.current = [];
 
       recorder.ondataavailable = (e) => {
@@ -549,12 +562,8 @@ function Mic() {
           const blob = new Blob(chunksRef.current, { type: mimeTypeRef.current || "audio/webm" });
           if (!blob || blob.size === 0) return;
           setLoading(true);
-          // Changed to get 'answer' instead of 'transcript' and 'answer'
           const { answer } = await sendAudioToServer(blob); 
-         
-          // Pass the answer to the chat page
           navigate("/chat", { state: { fromMic: true, transcript: "", answer } });
-
         } catch (err) {
           if (err.name === "AbortError") return;
           setError(err.message || "Failed to process audio.");
@@ -580,40 +589,24 @@ function Mic() {
     const form = new FormData();
     form.append("audio", audioBlob, "audio.wav");
 
-    // Use the same API endpoint as the chat component and send the audio data
-    // prompt it to make it yap less and get to the point
-    //
-    //
-    //
-    //
-    //
-    //
-    //***                  replace.         ******************************** */
-// import fetch from 'node-fetch'; // for node.js
-
+    
     const res = await fetch(
-      'https://noggin.rea.gent/alleged-starfish-2269',
+      'https://noggin.rea.gent/fantastic-felidae-1187',
       {
         method: 'POST',
         headers: {
-          Authorization: 'Bearer rg_v1_w3a95r6vs0y873skcucns075e6fl78ebr2qg_ngk',
+          'Authorization': 'Bearer rg_v1_c5o5yn557nvnn54dnjlmswub5isa24b9mtwt_ngk',
         },
-        body: JSON.stringify({
-        "body": form,
-        "zipcode": savedZip,
+        body: form,
         signal: requestAbortRef.current.signal,
-        }), // how do i capture the audio and make it into text to pass into api
-        //signal: requestAbortRef.current.signal,
       }
-    ).then(res => res.text()); 
-      
-    
-    
+    );
+
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       throw new Error(`Server error ${res.status}${text ? `: ${text}` : ""}`);
     }
-    
+
     const responseText = await res.text();
     return { answer: responseText };
   };
@@ -639,15 +632,13 @@ function Mic() {
     requestAbortRef.current = null;
   };
 
- 
+
   useEffect(() => {
     return () => stopAll({ cancelRequest: true });
   }, []);
 
   return (
      <PageShell title="Speak to AI" backTo={-1}>
-
-
       <div className={`mic-visual ${micOn ? "active" : ""}`}>
         {!micOn && <p className="mic-hint" aria-live="polite">{loading ? "Processing…" : "Tap to speak"}</p>}
         {micOn && (
@@ -700,16 +691,6 @@ function Chat() {
   const [q, setQ] = useState("");
   const [aiResponse, setAiResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const location = useLocation();
-
-  // New useEffect to handle response from Mic page
-  useEffect(() => {
-    if (location.state && location.state.fromMic && location.state.answer) {
-      setAiResponse(location.state.answer);
-      // Clean up state so we don't show the response on subsequent visits
-      window.history.replaceState({}, document.title);
-    }
-  }, [location]);
 
   const handleSubmit = async () => {
     if (!q.trim()) return;
@@ -718,15 +699,15 @@ function Chat() {
     setAiResponse("");
 
     const response = await fetch(
-      'https://noggin.rea.gent/fantastic-felidae-1187',
+      'https://noggin.rea.gent/yelling-locust-5253', 
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer rg_v1_c5o5yn557nvnn54dnjlmswub5isa24b9mtwt_ngk',
+          Authorization: 'Bearer rg_v1_o1388y4kdvdid2c10jcb55l3sfcvd7osarr9_ngk', 
         },
         body: JSON.stringify({
-          "question": q,
+          "question": q, 
         }),
       }
     );
@@ -878,7 +859,7 @@ export default function App() {
       <Route path="/resultmic" element={<Resultmic />} />
       <Route path="/resultcamera" element={<Resultcamera />} />
       <Route path="/recenter" element={<Recenter />} />
-      
+
 
 // ---- Our 404 Page ----
       <Route path="*" element={<div className="container">
