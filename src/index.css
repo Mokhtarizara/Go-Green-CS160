@@ -1,9 +1,10 @@
-/* the pwd src/index.css */
 
 /* App base */
 body {
-  margin: 5px;
-  padding: 10px;
+  margin: 1px;
+  font-size: 16px;
+  line-height:2.3; /* longerline height */
+  padding: 0.5px;
   font-family: Arial, sans-serif;
   background: #f7f7f7;
 }
@@ -11,17 +12,34 @@ body {
 /* Card container */
 .container {
   max-width: 400px;
-  margin: 10vh auto;
+  margin: 0.5vh auto;
   padding: 2rem;
   background: white;
   border-radius: 1rem;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.36);
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 90vh;
 }
 
+/* Header */
+@media (max-width: 600px) {
+  .container {
+    max-width: 95vw;
+    padding: 2rem;
+    margin-top: 1vh;
+  }
+  .go-button {
+    width: 90%;
+    padding: 1rem 0;
+  }
+}
 /* Buttons */
 .go-button {
-  margin: 0.5rem; /* space all around the button */
+  margin: 0.5rem; /* I add space all around the buttons */
   padding: 1rem 2rem;
   font-size: 1.2rem;
   border: none;
@@ -31,20 +49,175 @@ body {
   cursor: pointer;      
   transition: background 0.2s;
 }
-.go-button:hover {
-  background: #00ae2c;
+  .go-button:hover {
+  background: #4ecd6e;
 }
 
-/* Header */
-@media (max-width: 600px) {
-  .container {
-    max-width: 95vw;
-    padding: 1rem;
+
+/* MIC Button and Icons */
+.mic-button{
+  
+  margin: 0.5rem; /* I add space all around the buttons */
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 5rem;
+  background: #00513a;
+  color: white;
+  cursor: pointer;      
+  transition: background 0.1s;
+}
+.mic-button:hover {
+  background: #4ecd6e;
+}
+
+
+.Continue-button {
+  margin: 0.5rem; 
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 5rem;
+  background: #00513a;
+  color: white;
+  cursor: pointer;      
+  transition: background 0.1s;
+}
+  .Continue-button:hover {
+  background: #4ecd6e;
+} 
+
+/* Camera buttons */
+.camera-button {
+  margin: 0.5rem; 
+  padding: 1rem 1.5rem;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 5rem;
+  background: #00513a;
+  color: white;
+  cursor: pointer;      
+  transition: background 0.1s;
+}
+  .camera-button:hover {
+  background: #4ecd6e;
+}
+
+
+/* Nav Back buttons */
+.navBack-button {
+  display: flex;
+  border: none;
+  margin: 0.5rem; 
+  padding: 1rem 1.5rem;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 3rem;
+  background: #00513a;
+  color: white;
+  cursor: pointer;      
+  transition: background 0.1s;
+}
+.navBack-button:hover {
+  background: #4ecd6e;
+}
+
+/* chat button */
+.capture-button{
+  padding: 0.5rem   1rem ;
+  padding-bottom: 1px;
+  padding-top: 3px;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 12rem;
+  background: #00513aee;
+  color: white;
+  cursor: pointer;      
+  transition: background 0.1s;
+}
+.capture-button:hover {
+  background: #4ecd6e;
+}
+
+.location-button {
+  display: flex;
+  padding: 0.3rem 0.9rem ;
+  border: none;
+  border-radius: 1rem;
+  background: #00513a;
+  color: white;
+  cursor: pointer;      
+  transition: background 0.1s;
   }
-  .go-button {
-    width: 100%;
-    padding: 1rem 0;
-  }
+
+.location-button:hover {
+  background: #4ecd6e;
+}
+
+.small-text-btn {
+  font-size: 18px;
+}
+
+.updatelocation-button{
+  margin: 0.5rem; 
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 5rem;
+  background: #00513a;
+  color: white;
+  cursor: pointer;      
+  transition: background 0.1s;
+}
+.updatelocation-button:hover {
+  background: #4ecd6e;
+}
+
+
+.enter-button{
+ border-radius: 6px;
+ 
+ padding: 0.5rem 1rem; 
+ background: #757272;
+ box-shadow: 5px 3px 10px rgba(116, 113, 113, 0.679);
+ color: white;
+ transition: background 0.1s;
+}
+.enter-button:hover {
+  background: #4ecd6e;
+}
+
+
+
+/* Camera frame */
+.camera-frame{
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.36);
+}
+
+/* Input for ZIP code */
+.inputzip {
+  width: 200px;          
+  font-size: 16px; 
+  padding: 8px; 
+  box-shadow: #000000d0 0px 0px 5px inset ;
+  border: none;
+  border-radius: 0.5rem;
+}
+
+/* h3 */
+.container h3 {
+  display: flex;
+  color: rgb(0, 96, 0);
+  font-size: 18px;
+  font-weight: 500;
+  margin-top: 10px;
 }
 
 /* chat Inputs */  
@@ -54,12 +227,209 @@ body {
   padding: 8px; 
 }
 
-#zipcheckbox {
-  margin-top: 1rem;
+
+/* mic visuals */
+.mic-visual {
+  margin-top: 15px;
+  background-color: black;
+  border-radius: 30px;
+  overflow-y: hidden;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+  align-items: center;    
+  min-height: 50vh;
 }
 
-.inputzip {
-  width: 200px;          
-  font-size: 16px; 
-  padding: 8px; 
+/* mic visuals, vquare */ 
+.square {
+  position: relative ;
+  width: 150px;
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* our mic visuals, square, spans */
+.square span:nth-child(1) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(#00000052 50%, #0000003b 40%);
+  border-radius: 100%;
+  box-shadow: 0 0 50px  rgb(0, 255, 106), inset 0 0 50px rgb(0, 255, 106)  ;
+  border-radius: 38% 62% 63% 37% / 41% 44% 56% 59%;
+  transition:  0.5s;
+  animation: animate1 6s linear;
+}
+.square span:nth-child(2) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(#00000052 50%, #0000003b 40%);
+  border-radius: 100%;
+  box-shadow: 0 0 50px  rgb(25, 0, 255), inset 0 0 50px  rgb(25, 0, 255)  ;
+  border-radius: 38% 62% 63% 37% / 41% 44% 56% 59%;
+  transition:  0.5s;
+  animation: animate2 4s linear;
+}
+.square span:nth-child(3) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(#00000052 50%, #4244433b 40%);
+  border-radius: 100%;
+  box-shadow: 0 0 50px rgb(0, 255, 106), inset 0 0 50px  rgb(0, 255, 106)  ;
+  border-radius: 38% 62% 63% 37% / 41% 44% 56% 59%;
+  transition:  0.5s;
+  animation: animate3 8s linear;
+}
+
+@keyframes animate1 {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes animate2 {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes animate3 {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.recenter-container {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 400px; 
+}
+
+/* Title */
+.recenter-title {
+  margin-bottom: 0;
+  text-align: center;
+}
+
+/* List of recycling centers */
+.recycling-list {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  margin-bottom: 2rem;
+}
+
+/* all the individual recycling center card */
+.recycling-card {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 1rem; 
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.36); 
+}
+
+/* Row with name and distance badge */
+.recycling-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* recycling center name */
+.recycling-card-title {
+  margin: 0;
+  color: rgb(0, 96, 0);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* distance badge */
+.recycling-distance {
+  background: #00513a;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* button row  */
+.recenter-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+
+/* this our wrapper around the input and mic icon */
+.chat-inline-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+/* our input field for chat */
+.chat-inline-wrap #chat-input {
+  width: 240px;
+  padding-right: 25px;
+  border-radius: 20px;
+  border: 1px solid #9da1a5ff;
+  padding: 0.7rem;
+}
+
+/* our mic icon next to the input */
+.mic-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 25px;   
+  color: #666;
+  cursor: pointer;
+}
+
+
+/* our output container for AI response */
+.chat-output-box {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  min-height: 100px;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+/* this our chat output text */
+.chat-muted {
+  text-align: center;
+  color: #6c757d;
+}
+
+/* this ou AI response text */
+.chat-response {
+  white-space: pre-wrap;
 }
