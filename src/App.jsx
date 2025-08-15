@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import {Routes, Route, useNavigate, useLocation} from "react-router-dom";
 import {IoCamera, IoChatbubblesOutline, IoRadioButtonOn} from "react-icons/io5";
 import { IoIosReturnLeft, IoIosReverseCamera, IoIosMic } from "react-icons/io";
@@ -13,8 +13,6 @@ function Home() {
   const navigate = useNavigate();
   const [entered, setEntered] = useState(false);
   const [zip, setZip] = useState("");
-  const [saveZip, setSaveZip] = useState(false);
-  const [userLocation, setUserLocation] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
 
@@ -24,11 +22,7 @@ function Home() {
   };
 
   useEffect(() => {
-    const savedLocation = localStorage.getItem("userLocation");
     const savedZip = localStorage.getItem("savedLocation");
-    if (savedLocation) {
-      setUserLocation(savedLocation);
-    }
     if (savedZip) {
       setZip(savedZip);
     }
@@ -53,7 +47,6 @@ function Home() {
     if (!isAllowedLocation(cityState)) {
       throw new Error("ERROR. Allowed: San Francisco or Berkeley.");
     }
-    setUserLocation(cityState);
     localStorage.setItem("userLocation", cityState);
     if (zipcode) {
       localStorage.setItem("savedLocation", zipcode);
@@ -79,7 +72,7 @@ function Home() {
             setZip(zipcode);
             await getCityStateFromZipcode(zipcode);
           }
-        } catch (err) {
+        } catch {
           alert("Location not supported! This app currently supports only San Francisco and Berkeley zip code.");
         }
       }
@@ -94,7 +87,7 @@ function Home() {
     try {
       await getCityStateFromZipcode(zip.trim());
       setEntered(true); // uwe are unlocking the buttons only after  verification
-    } catch (error) {
+    } catch {
       alert("Location not supported! This app currently supports only San Francisco and Berkeley zip code.");
     } finally {
       setIsVerifying(false);
@@ -104,9 +97,9 @@ function Home() {
     <div className="container" >
       <h1 className='title'>Go Green</h1>
 
-      {userLocation && <h3>{userLocation}</h3>}
+      {localStorage.getItem("userLocation") && <h3>{localStorage.getItem("userLocation")}</h3>}
       
-      {!userLocation && <h4>Please type your zip code or allow location access.</h4>}
+      {!localStorage.getItem("userLocation") && <h4>Please type your zip code or allow location access.</h4>}
    
      
       <div style={{ marginTop: "3rem" }}>
@@ -141,7 +134,7 @@ function Home() {
                 try {
                   await getCityStateFromZipcode(zip.trim());
                   setNeedsVerification(false);
-                } catch (error) {
+                } catch {
                   alert("Location not supported! This app currently supports only San Francisco and Berkeley zip code.");
                 } finally {
                   setIsVerifying(false);
@@ -163,7 +156,7 @@ function Home() {
           <button 
             className="go-button" 
             onClick={handleEnter}
-            disabled={isVerifying || !userLocation || zip.length < 5 || needsVerification}
+            disabled={isVerifying || !localStorage.getItem("userLocation") || zip.length < 5 || needsVerification}
           >
             {isVerifying ? "Verifying..." : <IoIosReturnLeft className="enter-icon" size={30} />}
           </button>
@@ -212,24 +205,25 @@ function Camera() {
   const [capturedPhoto, setCapturedPhoto] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Function to start the camera stream
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-    } catch (err) {
-      alert("not able to accses camera: " + err.message);
+    } catch {
+      alert("not able to accses camera");
     }
   };
 
   useEffect(() => {
+    const videoElement = videoRef.current;
     startCamera();
 
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+      if (videoElement && videoElement.srcObject) {
+        const stream = videoElement.srcObject;
+        stream.getTracks().forEach((track) => track.stop());
       }
     };
   }, []);
@@ -248,14 +242,13 @@ function Camera() {
     const imageDataUrl = canvas.toDataURL("image/png");
     setCapturedPhoto(imageDataUrl);
 
-    // Stop video stream after capture
     if (video.srcObject) {
       video.srcObject.getTracks().forEach((track) => track.stop());
     }
   };
   const handleRetake = () => {
     setCapturedPhoto(null);
-    startCamera();  // Restart camera stream on retake
+    startCamera();  
   };
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -263,7 +256,6 @@ function Camera() {
       const reader = new FileReader();
       reader.onload = (e) => {
         setCapturedPhoto(e.target.result);
-        // Stop camera stream when file is uploaded
         if (videoRef.current && videoRef.current.srcObject) {
           videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
         }
@@ -306,7 +298,7 @@ function Camera() {
         </>
       ) : (
         <>
-          <img  className="camera-frame" src={capturedPhoto} alt="Captured" style={{ width: "100%", maxWidth: "100%", maxWidth: 400 }} />
+          <img  className="camera-frame" src={capturedPhoto} alt="Captured" style={{ width: "100%", maxWidth: 400 }} />
           
           <p style={{ marginTop: "1rem" }}>Photo captured successfully!</p>
           
@@ -341,26 +333,12 @@ function Resultcamera() {
   const [analysisResult, setAnalysisResult] = useState("");
   const [analysisError, setAnalysisError] = useState("");
   const [photo, setPhoto] = useState(null);
-  const [userLocation, setUserLocation] = useState("");
 
-  useEffect(() => {
-    const state = location.state || {};
-    const photoFromState = state.photo;
-    if (photoFromState) {
-      setPhoto(photoFromState);
-      const locFromState = state.userLocation;
-      const locFromStorage = localStorage.getItem("userLocation") || localStorage.getItem("savedLocation") || "Unknown";
-      const effectiveLoc = (locFromState && String(locFromState).trim()) ? locFromState : locFromStorage;
-      setUserLocation(effectiveLoc);
-      analyzePhoto(photoFromState, effectiveLoc);
-    }
-  }, [location]);
-  const analyzePhoto = async (imageDataUrl, userLoc) => {
+  const analyzePhoto = useCallback(async (imageDataUrl) => {
     setIsAnalyzing(true);
     setAnalysisError("");
     
     try {
-      const effectiveLoc = (userLoc && String(userLoc).trim()) ? userLoc : (localStorage.getItem("userLocation") || localStorage.getItem("savedLocation") || "Unknown");
       const zipcode = localStorage.getItem("savedLocation") || "";
       const response = await fetch(
         'https://noggin.rea.gent/constitutional-anglerfish-9162',
@@ -383,17 +361,26 @@ function Resultcamera() {
       try {
         const parsedResult = JSON.parse(result);
         formattedResult = formatApiResponse(parsedResult);
-      } catch (parseError) {
-        formattedResult = result;
-      }
+      }catch (parseError) {
+      console.warn(" parse failed:", parseError);
+      formattedResult = result;
+    }
       setAnalysisResult(formattedResult);
-    } catch (error) {
+    } catch {
       setAnalysisError("Failed to analyze photo. Please try again.");
-      console.error("Analysis error:", error);
     } finally {
       setIsAnalyzing(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const state = location.state || {};
+    const photoFromState = state.photo;
+    if (photoFromState) {
+      setPhoto(photoFromState);
+      analyzePhoto(photoFromState);
+    }
+  }, [location, analyzePhoto]);
 
   const formatApiResponse = (data) => {
     if (typeof data === 'string') {
@@ -446,11 +433,9 @@ function Resultcamera() {
           <img 
             src={photo} 
             alt="Captured" 
-            style={{ width: "100%", maxWidth: 400, marginBottom: "1rem" }} 
+            style={{ borderRadius: "8px", width: "100%", maxWidth: 400, marginBottom: "1rem" }} 
           />
         )}
-        
-        <h4>Photo Analysis</h4>
         
         <div className="chat-output-box" style={{ marginTop: "1rem" }}>
           {isAnalyzing ? (
@@ -605,18 +590,24 @@ function Mic() {
       if (recorderRef.current && recorderRef.current.state !== "inactive") {
         recorderRef.current.stop();
       }
-    } catch { }
+    } catch { 
+        //ignore
+      }
     recorderRef.current = null;
 
     if (mediaStreamRef.current) {
       try {
         mediaStreamRef.current.getTracks?.().forEach(t => t.stop());
-      } catch {}
+      } catch { 
+        //ignore
+      }
       mediaStreamRef.current = null;
     }
 
     if (cancelRequest && requestAbortRef.current) {
-      try { requestAbortRef.current.abort(); } catch { }
+      try { requestAbortRef.current.abort(); } catch { 
+        //ignore
+      }
     }
     requestAbortRef.current = null;
   };
@@ -798,7 +789,6 @@ function Recenter() {
   const navigate = useNavigate();
   // Get both the saved location (city, state) and the zip code
   const userLocation = localStorage.getItem("userLocation") || "Berkeley, CA";
-  const savedZip = localStorage.getItem("savedLocation") || "Berkeley, CA"; // savedZip is no longer used for the mapsUrl
 
   // Use the userLocation for the Google Maps URL
   // We'll use the userLocation to provide a more specific search query.
