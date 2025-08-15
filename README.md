@@ -12,6 +12,8 @@
 The project is about a smart web app that helps people recycle the right way.
 It uses artificial intelligence to make recycling easier and more accurate for everyone.
 
+Click here to run the app.
+
  ╱|、🌱
 (` -7
 |、⁻〵 ノ)
