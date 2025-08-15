@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "update-docs": "npm run build && rm -rf docs/* && cp -r dist/* docs/ && touch docs/.nojekyll"
   },
   "dependencies": {
     "react": "^19.1.0",
