@@ -22,9 +22,15 @@ It uses artificial intelligence to make recycling easier and more accurate for e
 -------------------------------------------
 ## Features
 - Camera scan for item classification
-- Voice assistant
 - Chat interface
-- Location-based recycling center search
+- Voice assistant
+- Location-based SF & Berkeley recycling center search
+-------------------------------------------
+##  Technologies Used
+- React 19
+- Vite CSS3
+- React Router DOM
+- React Icons
 -------------------------------------------
 ## Team Members
 - Zahra Mokhtari 
@@ -32,7 +38,20 @@ It uses artificial intelligence to make recycling easier and more accurate for e
 - Derrick Yong
 -------------------------------------------
 ## Setup Instructions
-- npm install react-router-dom     
-- npm i react-router-dom
-- npm install react-icons
-- npm run dev       
+- Easy way :
+- Its deployed for faster accses click: https://mokhtarizara.github.io/Go-Green-CS160/
+
+## 1. Clone the repository through terminal
+
+- git clone https://github.com/Mokhtarizara/Go-Green-CS160
+- cd Go-Green-CS160
+
+## 2. Install dependencies
+- npm install
+- npm install react-router-dom  
+
+## 4. Run the development server
+- npm run dev
+
+- After that you will see http://localhost:portNumber
+- just copy that http and then paste it in browser 
