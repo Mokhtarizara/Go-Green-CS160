@@ -1,21 +1,12 @@
-//import { useState } from 'react'
-import './App.css'
 import React, { useRef, useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import { IoCamera } from "react-icons/io5";
-import { IoIosReturnLeft } from "react-icons/io";
-import { FaMicrophone } from "react-icons/fa";
-import { IoChatbubblesOutline } from "react-icons/io5";
-import { MdNavigateBefore } from "react-icons/md";
+import {Routes, Route, useNavigate, useLocation} from "react-router-dom";
+import {IoCamera, IoChatbubblesOutline, IoRadioButtonOn} from "react-icons/io5";
+import { IoIosReturnLeft, IoIosReverseCamera, IoIosMic } from "react-icons/io";
+import { FaMicrophone, FaMapMarkerAlt, FaRecycle } from "react-icons/fa";
+import { MdNavigateBefore, MdOutlineDriveFolderUpload } from "react-icons/md";
 import { LuMic } from "react-icons/lu";
-import { IoIosReverseCamera } from "react-icons/io";
-import { IoRadioButtonOn } from "react-icons/io5";
-import { IoIosMic } from "react-icons/io";
-import { FaMapMarkerAlt } from "react-icons/fa";
 import { IoHomeOutline } from "react-icons/io5";
-import { FaRecycle } from "react-icons/fa";
-import { MdOutlineDriveFolderUpload } from "react-icons/md";
-
+import './App.css';
 
 
 function Home() {
@@ -110,7 +101,7 @@ function Home() {
     }
   };
   return (
-    <div className="container">
+    <div className="container" >
       <h1 className='title'>Go Green</h1>
 
       {userLocation && <h3>{userLocation}</h3>}
@@ -118,16 +109,16 @@ function Home() {
       {!userLocation && <h4>Please type your zip code or allow location access.</h4>}
    
      
-      <div>
+      <div style={{ marginTop: "3rem" }}>
         <button type="button"
           className="location-button small-text-btn " 
           onClick={getLocationAndZipcode}
         >
          <FaMapMarkerAlt className="findlocation-icon" size={20} /> <span></span> Find</button>
       </div>
-    <label htmlFor="inputzip">Enter Zipcode or City:</label>
 
-      <div>
+    <label htmlFor="inputzip">Enter Zipcode or City:</label>
+      <div style={{ marginTop: "-1rem" }}>
         <input
           type="text" id="inputzip" placeholder="Zipcode / City" required minLength={4} maxLength={101}
           className="inputzip" value={zip} onChange={(e) => {
@@ -139,7 +130,7 @@ function Home() {
       </div>
 
    
-      <div style={{ marginTop: "1rem" }}>
+      <div style={{ marginTop: "1.5rem" }}>
         
             <button
               className="enter-button"
@@ -474,12 +465,11 @@ function Resultcamera() {
         </div>
         
         <div style={{ marginTop: "2rem" }}>
-          <button className="go-button" onClick={() => navigate("/recenter")}>
-            <FaRecycle /> <span></span> Recycling Center
+          <button className="go-button" onClick={() => navigate("/recenter")}> 
+            <FaRecycle  /> <span></span> Recycling Center
           </button>
-          <button className="go-button" onClick={() => navigate("/")}>
-            <IoHomeOutline /> <span></span>
-          </button>
+          <button className="go-button" onClick={() => navigate("/chat")}><IoChatbubblesOutline className="chat-icon" size={25} /></button>
+
         </div>
       </div>
     </PageShell>
@@ -744,10 +734,10 @@ function Chat() {
             
             <div style={{ position: "absolute", right: "5px", top: "50%", transform: "translateY(-50%)", display: "flex", gap: "5px" }}>
               <button
-                className="go-button"
+                className="go-button "
                 onClick={handleSubmit}
                 disabled={isLoading || !q.trim()}
-                style={{ padding: "5px 10px", fontSize: "0.8rem" }}
+                style={{ padding: "3px 5px", fontSize: "0.8rem" }}
               >
                 {isLoading ? "..." : "Ask AI"}
               </button>
