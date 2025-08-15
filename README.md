@@ -52,7 +52,7 @@ See below for instructions on how to build and run the app on your device.
 - npm install
 - npm install react-router-dom  
 
-## 4. Run the development server
+## 3. Run the development server
 - npm run dev
 
 - After that you will see http://localhost:portNumber
