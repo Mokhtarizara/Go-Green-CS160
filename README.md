@@ -12,7 +12,7 @@
 The project is about a smart web app that helps people recycle the right way.
 It uses artificial intelligence to make recycling easier and more accurate for everyone.
 
-Click here to run the app.
+See below for instructions on how to build and run the app on your device.
 
  ╱|、🌱
 (` -7
